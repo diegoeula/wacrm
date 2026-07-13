@@ -1,0 +1,93 @@
+# wacrm — pipeline adaptado de templates/gitlab-ci-docker-app.yml (repo de infraestructura).
+# Ramas: develop → :dev automático; pms (rama por defecto del fork) → :uat automático; :prd manual.
+# Variables de CI requeridas (Settings → CI/CD → Variables, masked):
+#   COOLIFY_WEBHOOK_DEV / _UAT / _PRD, COOLIFY_TOKEN
+#   NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY  (se hornean en el bundle; la anon key es pública por diseño)
+#   NEXT_PUBLIC_SITE_URL (URL canónica del deploy, ej. https://crm.miempresa.com)
+
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  IMAGE: $CI_REGISTRY_IMAGE
+
+.docker-login: &docker-login
+  - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+
+.deploy-script: &deploy-script
+  - 'curl --fail --retry 3 -X GET "$WEBHOOK" -H "Authorization: Bearer $COOLIFY_TOKEN"'
+
+test:
+  stage: test
+  image: node:22-alpine
+  script:
+    - npm ci
+    - npm run typecheck
+    - npm test
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+
+build:
+  stage: build
+  image: docker:27-cli
+  tags: [docker]
+  before_script: *docker-login
+  script:
+    - >
+      docker build --pull
+      --build-arg NEXT_PUBLIC_SUPABASE_URL="$NEXT_PUBLIC_SUPABASE_URL"
+      --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="$NEXT_PUBLIC_SUPABASE_ANON_KEY"
+      --build-arg NEXT_PUBLIC_SITE_URL="$NEXT_PUBLIC_SITE_URL"
+      --build-arg NEXT_PUBLIC_APP_LOCALE=es
+      -t "$IMAGE:$CI_COMMIT_SHORT_SHA" .
+    - docker push "$IMAGE:$CI_COMMIT_SHORT_SHA"
+    - |
+      case "$CI_COMMIT_BRANCH" in
+        develop) ENV_TAG=dev ;;
+        "$CI_DEFAULT_BRANCH") ENV_TAG=uat ;;
+        *) ENV_TAG="" ;;
+      esac
+      if [ -n "$ENV_TAG" ]; then
+        docker tag "$IMAGE:$CI_COMMIT_SHORT_SHA" "$IMAGE:$ENV_TAG"
+        docker push "$IMAGE:$ENV_TAG"
+      fi
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
+deploy-dev:
+  stage: deploy
+  image: alpine/curl:latest
+  variables:
+    WEBHOOK: $COOLIFY_WEBHOOK_DEV
+  script: *deploy-script
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+
+deploy-uat:
+  stage: deploy
+  image: alpine/curl:latest
+  variables:
+    WEBHOOK: $COOLIFY_WEBHOOK_UAT
+  script: *deploy-script
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# prd: retag manual del build de uat (sin rebuild) + webhook.
+deploy-prd:
+  stage: deploy
+  image: docker:27-cli
+  tags: [docker]
+  before_script: *docker-login
+  variables:
+    WEBHOOK: $COOLIFY_WEBHOOK_PRD
+  script:
+    - docker pull "$IMAGE:$CI_COMMIT_SHORT_SHA"
+    - docker tag "$IMAGE:$CI_COMMIT_SHORT_SHA" "$IMAGE:prd"
+    - docker push "$IMAGE:prd"
+    - 'curl --fail --retry 3 -X GET "$WEBHOOK" -H "Authorization: Bearer $COOLIFY_TOKEN"'
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual

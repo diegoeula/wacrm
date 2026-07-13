@@ -64,6 +64,10 @@ const SECURITY_HEADERS = [
 ] as const;
 
 const nextConfig: NextConfig = {
+  // Build autocontenido para la imagen Docker (ver Dockerfile): server.js
+  // + solo las dependencias realmente usadas, sin node_modules completo.
+  output: "standalone",
+
   /**
    * Cache-Control policy.
    *
