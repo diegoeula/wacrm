@@ -20,10 +20,19 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
+// El nombre visible sale de una variable, nunca de un literal: este mismo codigo sirve para
+// varios clientes y el nombre es lo primero que cambia. El default preserva el comportamiento
+// del upstream para quien no la defina.
+//
+// ⚠ Es NEXT_PUBLIC_*, o sea que se hornea en el build: cambiarla como variable de entorno del
+// contenedor no hace nada, hay que reconstruir la imagen. Es el mismo mecanismo —y la misma
+// trampa— que el idioma y la URL de Supabase.
+const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "wacrm";
+
 export const metadata: Metadata = {
   title: {
-    default: "wacrm",
-    template: "%s — wacrm",
+    default: APP_NAME,
+    template: `%s — ${APP_NAME}`,
   },
   description: "Self-hostable CRM template for WhatsApp.",
   robots: {

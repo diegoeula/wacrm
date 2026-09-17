@@ -1908,6 +1908,23 @@
     "sending": "Enviando...",
     "sendLink": "Enviar link de redefinição"
   },
+  "ResetPasswordPage": {
+    "checking": "Verificando o link...",
+    "title": "Defina uma nova senha",
+    "desc": "Escolha a senha que você vai usar a partir de agora",
+    "passwordLabel": "Nova senha",
+    "passwordPlaceholder": "Pelo menos 6 caracteres",
+    "confirmPasswordLabel": "Confirmar senha",
+    "confirmPasswordPlaceholder": "Repita sua senha",
+    "passwordTooShort": "A senha deve ter pelo menos 6 caracteres",
+    "passwordsMismatch": "As senhas não coincidem",
+    "saving": "Salvando...",
+    "submit": "Salvar senha",
+    "invalidTitle": "Este link não é mais válido",
+    "invalidDesc": "Os links de redefinição expiram e só podem ser usados uma vez. Peça um novo e abra-o no mesmo navegador.",
+    "requestNew": "Enviar um novo link",
+    "backToSignIn": "Voltar ao login"
+  },
   "JoinPage": {
     "fail": {
       "notFoundTitle": "Convite não encontrado",

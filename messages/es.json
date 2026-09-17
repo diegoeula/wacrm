@@ -1908,6 +1908,23 @@
     "sending": "Enviando...",
     "sendLink": "Enviar enlace de restablecimiento"
   },
+  "ResetPasswordPage": {
+    "checking": "Verificando el enlace...",
+    "title": "Elegí una contraseña nueva",
+    "desc": "Con esta contraseña vas a entrar de ahora en más",
+    "passwordLabel": "Contraseña nueva",
+    "passwordPlaceholder": "Al menos 6 caracteres",
+    "confirmPasswordLabel": "Confirmar contraseña",
+    "confirmPasswordPlaceholder": "Repetí tu contraseña",
+    "passwordTooShort": "La contraseña debe tener al menos 6 caracteres",
+    "passwordsMismatch": "Las contraseñas no coinciden",
+    "saving": "Guardando...",
+    "submit": "Guardar contraseña",
+    "invalidTitle": "Este enlace ya no sirve",
+    "invalidDesc": "Los enlaces de restablecimiento vencen y se usan una sola vez. Pedí uno nuevo y abrilo desde el mismo navegador.",
+    "requestNew": "Enviarme un enlace nuevo",
+    "backToSignIn": "Volver a iniciar sesión"
+  },
   "JoinPage": {
     "fail": {
       "notFoundTitle": "Invitación no encontrada",

@@ -14,6 +14,7 @@
  */
 
 export const THEME_IDS = [
+  "poberaj",
   "violet",
   "emerald",
   "cobalt",
@@ -23,7 +24,10 @@ export const THEME_IDS = [
 
 export type ThemeId = (typeof THEME_IDS)[number];
 
-export const DEFAULT_THEME: ThemeId = "violet";
+// El default es la marca del cliente, no el violeta del upstream. Quien prefiera otro
+// lo elige en Ajustes -> Apariencia; esto solo decide con que arranca alguien que
+// nunca lo toco, que es el caso de todos hasta que alguien lo toque.
+export const DEFAULT_THEME: ThemeId = "poberaj";
 
 export const STORAGE_KEY = "wacrm.theme";
 
@@ -67,6 +71,12 @@ export interface ThemeMeta {
 }
 
 export const THEMES: ReadonlyArray<ThemeMeta> = [
+  {
+    id: "poberaj",
+    name: "Poberaj",
+    tagline: "La identidad de la empresa: verde institucional #00614C.",
+    swatch: "oklch(0.439 0.086 171.3)",
+  },
   {
     id: "violet",
     name: "Violet",

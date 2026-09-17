@@ -147,7 +147,34 @@ html[data-mode="light"] {
 
 /* ---- ACCENT: primary color ---- */
 
+/* Paleta del cliente (perfil `brand/clients/poberaj` del repo de infraestructura).
+ *
+ * Los valores no estan estimados a ojo: salen de convertir los dos colores de marca desde sRGB,
+ * con el violeta del upstream como control — #7c3aed da oklch(0.541 0.247 293) y este archivo
+ * declara oklch(0.526 0.247 293), o sea que croma y matiz coinciden exactamente.
+ *
+ *   --primary        #00614C  verde institucional (botones, headers; 7.5:1 con texto blanco)
+ *   --primary-hover  #009776  verde del isotipo, mas claro: sirve de hover sobre el primario
+ *
+ * Va tambien en `:root` y no solo en su bloque `[data-theme]` porque las pantallas de login,
+ * registro y recuperacion se pintan ANTES de que el script de arranque lea la preferencia del
+ * usuario: sin esto, la primera pantalla que ve alguien es violeta y recien despues cambia.
+ */
 :root,
+html[data-theme="poberaj"] {
+  --primary: oklch(0.439 0.086 171.3);
+  --primary-foreground: oklch(0.985 0 0);
+  --primary-hover: oklch(0.602 0.119 170.2);
+  --primary-soft: oklch(0.439 0.086 171.3 / 0.12);
+  --primary-soft-2: oklch(0.439 0.086 171.3 / 0.2);
+  --ring: oklch(0.602 0.119 170.2);
+  --chart-1: oklch(0.439 0.086 171.3);
+  --chart-2: oklch(0.602 0.119 170.2);
+  --sidebar-primary: oklch(0.439 0.086 171.3);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-ring: oklch(0.602 0.119 170.2);
+}
+
 html[data-theme="violet"] {
   --primary: oklch(0.526 0.247 293);
   --primary-foreground: oklch(0.985 0 0);
