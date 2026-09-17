@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -31,7 +31,18 @@ import { MessageSquare, AlertCircle, ArrowLeft } from "lucide-react";
  * without a session would fail on submit with a message about authentication,
  * which reads as "my new password was rejected" instead of "the link expired".
  */
+// `useSearchParams` saca al componente del prerender estatico salvo que este bajo un limite de
+// Suspense — mismo patron que /login y /signup. Sin esto el build FALLA, no degrada: se cae con
+// «Error occurred prerendering page /reset-password» y la imagen no se construye.
 export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={null}>
+      <ResetPasswordForm />
+    </Suspense>
+  );
+}
+
+function ResetPasswordForm() {
   const t = useTranslations("ResetPasswordPage");
   const router = useRouter();
   const searchParams = useSearchParams();
