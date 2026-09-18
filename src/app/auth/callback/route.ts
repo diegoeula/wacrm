@@ -36,17 +36,37 @@ function safeNext(raw: string | null): string {
 }
 
 /**
+ * 🔴 EL `Location` VA RELATIVO, Y NO ES UNA PREFERENCIA DE ESTILO.
+ *
+ * En un Route Handler, `request.nextUrl` se arma desde la direccion en la que el
+ * servidor escucha —con `HOSTNAME=0.0.0.0` y `PORT=3000` eso da
+ * `https://0.0.0.0:3000`— y no desde el `Host` del pedido. Un redirect
+ * construido con `nextUrl.clone()` sale apuntando ahi y el navegador no puede
+ * seguirlo: el reseteo de contraseña termina en ninguna parte.
+ *
+ * ⚠ En `src/middleware.ts` el MISMO idiom si funciona, y por eso engaña: ahi
+ * `nextUrl` toma el Host real del pedido. Medido contra el deploy del
+ * 2026-09-17: `/`, que redirige el middleware, emite
+ * `Location: https://crm.<dominio>/dashboard`, mientras esta ruta emitia
+ * `https://0.0.0.0:3000/reset-password`.
+ *
+ * Un `Location` relativo es valido en HTTP y lo resuelve el navegador contra la
+ * URL que ya tiene: correcto detras de cualquier proxy, y sin tener que adivinar
+ * el host a partir de cabeceras que se pueden falsificar.
+ */
+function redirigir(destino: string) {
+  return new NextResponse(null, { status: 307, headers: { Location: destino } })
+}
+
+/**
  * Every failure lands on /reset-password with an `error`, instead of a bare 404
  * or a silent bounce to /login. That page has no session in this case and says
  * so — "the link expired, ask for another one" — which is the only thing the
  * person can act on. A redirect to /login would show a password box to someone
  * who is there precisely because they do not have a password.
  */
-function fail(request: NextRequest, reason: string) {
-  const url = request.nextUrl.clone()
-  url.pathname = '/reset-password'
-  url.search = `?error=${encodeURIComponent(reason)}`
-  return NextResponse.redirect(url)
+function fail(reason: string) {
+  return redirigir(`/reset-password?error=${encodeURIComponent(reason)}`)
 }
 
 export async function GET(request: NextRequest) {
@@ -56,21 +76,14 @@ export async function GET(request: NextRequest) {
   // `error` / `error_description` and no code at all, so this has to be checked
   // before looking for one.
   const reported = searchParams.get('error_description') ?? searchParams.get('error')
-  if (reported) return fail(request, reported)
+  if (reported) return fail(reported)
 
   const code = searchParams.get('code')
-  if (!code) return fail(request, 'missing_code')
+  if (!code) return fail('missing_code')
 
   const supabase = await createClient()
   const { error } = await supabase.auth.exchangeCodeForSession(code)
-  if (error) return fail(request, error.message)
+  if (error) return fail(error.message)
 
-  // `request.nextUrl.clone()` and not `new URL(request.url)`: behind the reverse
-  // proxy the raw request URL carries the *internal* host and port, and a
-  // redirect built from it sends the browser somewhere it cannot reach. This is
-  // the same idiom `src/middleware.ts` already uses for its own redirects.
-  const url = request.nextUrl.clone()
-  url.pathname = safeNext(searchParams.get('next'))
-  url.search = ''
-  return NextResponse.redirect(url)
+  return redirigir(safeNext(searchParams.get('next')))
 }
